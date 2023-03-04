@@ -4,13 +4,13 @@
 #include <vector>
 #include <iomanip>
 
-using std::pair;
+using std::vector;
 
 template<typename T>
 class Matrix {
 private:
     int rows, columns;
-    T *data;
+    vector<T> data;
 
 public:
     int Rows() const {
@@ -25,42 +25,42 @@ public:
         return rows == columns;
     }
 
-
-    T &operator[](const int &index) const {
-        return data[index];
-    }
-
-    // Default constructor
-    Matrix<T>() {
+    void clear() {
         rows = 0;
         columns = 0;
-        data = nullptr;
+        data.clear();
+    }
+
+//    T &operator[](const int &index) const {
+//        return data[index];
+//    }
+
+    // Default constructor
+    Matrix() {
+        rows = 0;
+        columns = 0;
+    }
+
+    // Destructor
+    ~Matrix() {
+        data.clear();
     }
 
     // Constructor
-    // Creates matrix RxC
-    Matrix<T>(const int &r, const int &c = 1) {
+    Matrix(const int &r, const int &c) {
         rows = r;
         columns = c;
-        data = new T[rows * columns];
+        data = vector<T>(r * c);
 
         // Fills matrix with zeros
-        for (int i = 0; i < rows * columns; i++) {
-            data[i] = 0;
+        for (auto i: data) {
+            i = 0;
         }
     }
 
     // Constructor
-    Matrix<T>(const T &t) {
-        rows = 1;
-        columns = 1;
-        data = new T[rows * columns];
-        data[0] = t;
-    }
-
-    // Constructor
     // Creates matrix from initializer_list<initializer_list>
-    Matrix<T>(std::initializer_list<std::initializer_list<T>> matrix) {
+    Matrix(std::initializer_list<std::initializer_list<T>> matrix) {
         rows = matrix.size();
         columns = (matrix.begin())->size();
 
@@ -70,7 +70,7 @@ public:
             }
         }
 
-        data = new T[rows * columns];
+        data = vector<T>(rows * columns);
         int index = 0;
 
         for (auto row: matrix) {
@@ -83,13 +83,12 @@ public:
 
     // Constructor
     // Creates matrix from initializer_list
-    Matrix<T>(std::initializer_list<T> matrix) {
+    Matrix(std::initializer_list<T> matrix) {
         rows = matrix.size();
         columns = 1;
+        data = vector<T>(rows * columns);
 
-        data = new T[rows * columns];
         int index = 0;
-
         for (auto i: matrix) {
             data[index] = i;
             index++;
@@ -97,64 +96,41 @@ public:
     }
 
     // Copy constructor
-    Matrix<T>(const Matrix<T> &other) {
+    Matrix(const Matrix &other) {
         if (this != &other) {
-            if (data) {
-                delete[] data;
-            }
+            data.clear();
 
             rows = other.rows;
             columns = other.columns;
-
-            data = new T[rows * columns];
-
-            for (int i = 0; i < rows * columns; i++) {
-                data[i] = other.data[i];
-            }
+            data = vector<T>(other.data);
         }
     }
 
-    // Destructor
-    ~Matrix<T>() {
-        if (data) {
-            delete[] data;
+    // Copy Assigment Operator
+    Matrix &operator=(const Matrix<T> &other) {
+        if (this != &other) {
+            data.clear();
+
+            rows = other.rows;
+            columns = other.columns;
+            data = vector<T>(other.data);
         }
-    }
-
-    // operator=
-    Matrix<T> &operator=(const Matrix<T> &other) {
-        if (this == &other) {
-            return *this;
-        }
-
-        if (data) {
-            delete[] data;
-        }
-
-        rows = other.rows;
-        columns = other.columns;
-
-        data = new T[rows * columns];
-
-        for (int i = 0; i < rows * columns; i++) {
-            data[i] = other.data[i];
-        }
-
         return *this;
     }
 
-    // operator=
-    Matrix<T> &operator=(const T &t) {
-        if (data) {
-            delete[] data;
+    // Move Assignment Operator
+    Matrix &operator=(Matrix<T> &&other) {
+        if (this != &other) {
+            data.clear();
+
+            rows = other.rows;
+            columns = other.columns;
+            data = vector<T>(other.data);
+
+            other.rows = 0;
+            other.columns = 0;
+            other.clear();
         }
-
-        rows = 1;
-        columns = 1;
-
-        data = new T[rows * columns];
-        data[0] = t;
-
         return *this;
     }
 
@@ -194,7 +170,7 @@ public:
     }
 
     // Matrix addition
-    Matrix<T> operator+(const Matrix<T> &other) {
+    Matrix operator+(const Matrix<T> &other) {
         if (rows != other.rows || columns != other.columns) {
             throw std::invalid_argument("Only matrices of equal dimensions can be added together.");
         }
@@ -208,8 +184,9 @@ public:
     }
 
     // Matrix scalar multiplication
-    friend Matrix<T> operator*(const T &scalar, const Matrix<T> &other) {
-        Matrix<T> matrix(other.rows, other.columns);
+    template<typename TScalar>
+    friend Matrix operator*(const TScalar &scalar, const Matrix<T> &other) {
+        Matrix<T> matrix(other);
 
         for (int i = 0; i < other.rows * other.columns; i++) {
             matrix.data[i] = other.data[i] * scalar;
@@ -219,12 +196,19 @@ public:
     }
 
     // Matrix scalar multiplication
-    friend Matrix<T> operator*(const Matrix<T> &other, const T &scalar) {
-        return scalar * other;
+    template<typename TScalar>
+    Matrix operator*(const TScalar &scalar) const {
+        Matrix<T> matrix(rows, columns);
+
+        for (int i = 0; i < rows * columns; i++) {
+            matrix.data[i] = data[i] * scalar;
+        }
+
+        return matrix;
     }
 
     // Matrix multiplication
-    Matrix<T> operator*(const Matrix<T> &other) {
+    Matrix operator*(const Matrix<T> &other) {
         if (columns != other.rows) {
             throw std::invalid_argument(
                     "Number of columns of the left matrix should be equal to the number of rows of the right matrix.");
@@ -282,14 +266,11 @@ public:
     }
 
     // Element of a matrix
-    T &operator()(const int &row, const int &column) {
+    T operator()(const int &row, const int &column) const {
         if (row >= rows || column >= columns) {
             throw std::invalid_argument("Index out of range.");
         }
-
-        T &tmp = data[row * columns + column];
-
-        return tmp;
+        return data[row * columns + column];
     }
 
     // Identity matrix
@@ -351,7 +332,7 @@ public:
 
     Matrix<T> Inverse() const {
         if (rows != columns) {
-            throw std::invalid_argument("Non-square matricies have no Inverse.");
+            throw std::invalid_argument("Non-square matrices have no Inverse.");
         }
 
         T det = Determinant();
