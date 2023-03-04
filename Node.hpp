@@ -1,21 +1,20 @@
 #pragma once
 
-template <typename TNode>
-class Node
-{
+template<typename TNode>
+class Node {
 private:
     TNode nodeData;
 
 public:
-    Node(const TNode &nodeData_)
-    {
-        nodeData = nodeData_;
+    Node() = default;
+
+    Node(const TNode &data) {
+        nodeData = data;
     }
 
-    ~Node() {}
+    ~Node() = default;
 
-    TNode NodeData()
-    {
+    TNode NodeData() const {
         return nodeData;
     }
 };
