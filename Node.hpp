@@ -1,7 +1,5 @@
 #pragma once
 
-using std::pair;
-
 template<typename TNode>
 class Node {
 private:
@@ -27,8 +25,7 @@ public:
 
 template<typename TNode>
 struct NodeCompare {
-    bool
-    operator()(const Node<TNode> &lhs, const Node<TNode> &rhs) const {
+    bool operator()(const Node<TNode> &lhs, const Node<TNode> &rhs) const {
         return &lhs < &rhs;
     }
 };

@@ -31,32 +31,26 @@ public:
         data.clear();
     }
 
-//    T &operator[](const int &index) const {
-//        return data[index];
-//    }
-
     // Default constructor
     Matrix() {
         rows = 0;
         columns = 0;
     }
 
-    // Destructor
-    ~Matrix() {
-        data.clear();
-    }
-
     // Constructor
-    Matrix(const int &r, const int &c) {
+    Matrix(const int &r, const int &c, const T &t = 0) {
         rows = r;
         columns = c;
         data = vector<T>(r * c);
 
         // Fills matrix with zeros
         for (auto i: data) {
-            i = 0;
+            i = t;
         }
     }
+
+    // Destructor
+    ~Matrix() = default;
 
     // Constructor
     // Creates matrix from initializer_list<initializer_list>
@@ -98,39 +92,36 @@ public:
     // Copy constructor
     Matrix(const Matrix &other) {
         if (this != &other) {
-            data.clear();
-
             rows = other.rows;
             columns = other.columns;
-            data = vector<T>(other.data);
+            data = other.data;
         }
     }
 
     // Copy Assigment Operator
-    Matrix &operator=(const Matrix<T> &other) {
+    Matrix &operator=(const Matrix<double> &other) {
         if (this != &other) {
-            data.clear();
-
             rows = other.rows;
             columns = other.columns;
-            data = vector<T>(other.data);
+            data = other.data;
         }
         return *this;
     }
 
     // Move Constructor
+    Matrix(Matrix &&other) {
+        rows = other.rows;
+        columns = other.columns;
+        data = other.data;
+        other.clear();
+    }
 
     // Move Assignment Operator
     Matrix &operator=(Matrix<T> &&other) {
         if (this != &other) {
-            data.clear();
-
             rows = other.rows;
             columns = other.columns;
-            data = vector<T>(other.data);
-
-            other.rows = 0;
-            other.columns = 0;
+            data = other.data;
             other.clear();
         }
         return *this;
@@ -268,7 +259,7 @@ public:
     }
 
     // Element of a matrix
-    T operator()(const int &row, const int &column) const {
+    T operator()(const int &column, const int &row) const {
         if (row >= rows || column >= columns) {
             throw std::invalid_argument("Index out of range.");
         }
