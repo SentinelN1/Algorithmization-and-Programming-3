@@ -26,6 +26,6 @@ public:
 template<typename TNode>
 struct NodeCompare {
     bool operator()(const Node<TNode> &lhs, const Node<TNode> &rhs) const {
-        return &lhs < &rhs;
+        return lhs.GetData() < rhs.GetData();
     }
 };

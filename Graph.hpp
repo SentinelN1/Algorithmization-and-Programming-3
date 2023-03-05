@@ -3,17 +3,20 @@
 #include "Matrix.hpp"
 #include "Edge.hpp"
 #include <vector>
+#include <list>
+#include <map>
+#include <set>
 
-using std::vector;
+using std::vector, std::list, std::pair, std::map, std::set;
 
 template<typename TNode, typename TWeight>
 class Graph {
 private:
-    vector<Node<TNode>> graphNodes;
+    map<Node<TNode>, size_t, NodeCompare<TNode>> graphNodes;
     Matrix<TWeight> adjacencyMatrix;
 
 public:
-    size_t Nodes() const {
+    size_t size() const {
         return graphNodes.size();
     }
 
@@ -27,10 +30,20 @@ public:
         return count;
     }
 
+    set<Node<TNode>, NodeCompare<TNode>> Nodes() {
+        set<Node<TNode>, NodeCompare<TNode>> s;
+        for (auto i: graphNodes) {
+            s.insert(i.first);
+        }
+        return s;
+    }
+
     Matrix<TWeight> AdjacencyMatrix() const {
         return adjacencyMatrix;
     }
 
+
+    // 3. Основной интрефейс -- начало
     bool empty() const {
         return graphNodes.empty();
     }
@@ -41,18 +54,22 @@ public:
     }
 
     void swap(Graph &other) {
-        Graph *tmp = this;
-        this = &other;
-        &other = tmp;
+        Graph tmp = *this;
+        *this = other;
+        other = tmp;
     }
+    // 3. Основной интрефейс -- конец
 
+    // 2. Конструкторы и операторы присваивания класса Graph -- начало
     // Default Constructor
     Graph() = default;
 
     // Constructor
     Graph(const vector<Node<TNode>> &nodes, const Matrix<TWeight> &matrix) {
         if (matrix.square()) {
-            graphNodes = nodes;
+            for (size_t i = 0; i < nodes.size(); ++i) {
+                graphNodes[nodes[i]] = i;
+            }
             adjacencyMatrix = matrix;
         }
     }
@@ -61,15 +78,15 @@ public:
     ~Graph() = default;
 
     // Copy Constructor
-    Graph(const Graph &other) {
-        if (this != other) {
+    Graph(Graph<TNode, TWeight> &other) {
+        if (this != &other) {
             graphNodes = other.graphNodes;
             adjacencyMatrix = other.adjacencyMatrix;
         }
     }
 
     // Move Constructor
-    Graph(Graph &&other) {
+    Graph(Graph &&other) noexcept {
         if (this != other) {
             graphNodes = other.graphNodes;
             adjacencyMatrix = other.adjacencyMatrix;
@@ -87,7 +104,7 @@ public:
     }
 
     // Move Assignment Operator
-    Graph &operator=(Graph &&other) {
+    Graph &operator=(Graph &&other) noexcept {
         if (this != &other) {
             graphNodes = other.graphNodes;
             adjacencyMatrix = other.adjacencyMatrix;
@@ -95,30 +112,57 @@ public:
         }
         return *this;
     }
+    // 2. Конструкторы и операторы присваивания класса Graph -- начало
 
-    size_t degree_in(const int &nodeIndex) {
+    // 4. Итерирование по графу -- начало
+    auto begin() {
+        return graphNodes.begin();
+    }
+
+    auto end() {
+        return graphNodes.end();
+    }
+
+    auto cbegin() const {
+        return graphNodes.cbegin();
+    }
+
+    auto cend() const {
+        return graphNodes.cend();
+    }
+    // 4. Итерирование по графу -- конец
+
+    // 5. Работа с графом через ключ -- начало
+    size_t degree_in(const Node<TNode> &node) {
         size_t count = 0;
-        for (int i = 0; i < Nodes(); ++i) {
-            if (adjacencyMatrix(nodeIndex, i) > 0) {
+        for (int i = 0; i < size(); ++i) {
+            if (adjacencyMatrix(graphNodes[node], i) > 0) {
                 count++;
             }
         }
         return count;
     }
 
-    size_t degree_out(const int &nodeIndex) {
+    size_t degree_out(const Node<TNode> &node) {
         size_t count = 0;
-        for (int i = 0; i < Nodes(); ++i) {
-            if (adjacencyMatrix(i, nodeIndex) > 0) {
+        for (int i = 0; i < size(); ++i) {
+            if (adjacencyMatrix(i, graphNodes[node]) > 0) {
                 count++;
             }
         }
         return count;
     }
 
-    bool loop(const int &nodeIndex) {
-        return adjacencyMatrix(nodeIndex, nodeIndex) > 0;
+    bool loop(const Node<TNode> &node) {
+        return adjacencyMatrix(graphNodes[node], graphNodes[node]) > 0;
     }
+    // 5. Работа с графом через ключ -- конец
+
+    // 6. Вставка узлов и рёбер в граф -- начало
+//    pair<auto, bool> insert_node(const Node<TNode> &node) {
+//
+//    }
+    // 6. Вставка узлов и рёбер в граф -- конец
 
     void clear_edges() {
         adjacencyMatrix = Matrix<TWeight>(Nodes(), Nodes(), 0);
@@ -129,4 +173,14 @@ public:
 
         }
     }
+
+    //
+
 };
+
+template<typename TNode, typename TWeight>
+void swap(Graph<TNode, TWeight> &graph1, Graph<TNode, TWeight> &graph2) {
+    Graph<TNode, TWeight> tmp = graph1;
+    graph1 = graph2;
+    graph2 = tmp;
+}

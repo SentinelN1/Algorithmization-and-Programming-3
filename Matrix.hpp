@@ -98,8 +98,8 @@ public:
         }
     }
 
-    // Copy Assigment Operator
-    Matrix &operator=(const Matrix<double> &other) {
+    // Copy Assigment Operator0
+    Matrix &operator=(const Matrix &other) {
         if (this != &other) {
             rows = other.rows;
             columns = other.columns;
@@ -117,7 +117,7 @@ public:
     }
 
     // Move Assignment Operator
-    Matrix &operator=(Matrix<T> &&other) {
+    Matrix &operator=(Matrix &&other) {
         if (this != &other) {
             rows = other.rows;
             columns = other.columns;
@@ -128,7 +128,7 @@ public:
     }
 
     // Console output
-    friend std::ostream &operator<<(std::ostream &os, const Matrix<T> &matrix) {
+    friend std::ostream &operator<<(std::ostream &os, const Matrix &matrix) {
         for (int i = 0; i < matrix.rows; i++) {
             if (i == 0) {
                 os << std::setw(4) << "{{";
@@ -155,7 +155,7 @@ public:
     }
 
     // Input from console
-    friend std::istream &operator>>(std::istream &is, Matrix<T> &matrix) {
+    friend std::istream &operator>>(std::istream &is, Matrix &matrix) {
         for (int i = 0; i < matrix.rows * matrix.columns; ++i) {
             is >> matrix.data[i];
         }
@@ -163,7 +163,7 @@ public:
     }
 
     // Matrix addition
-    Matrix operator+(const Matrix<T> &other) {
+    Matrix operator+(const Matrix &other) {
         if (rows != other.rows || columns != other.columns) {
             throw std::invalid_argument("Only matrices of equal dimensions can be added together.");
         }

@@ -1,9 +1,10 @@
 #include "Graph.hpp"
+#include <set>
 
 using std::cin, std::cout, std::endl, std::string;
 
-#define TNode string
-#define TWeight double
+#define TNode int
+#define TWeight int
 
 int main() {
     Matrix<TWeight> matrix1 = {{0, 1, 0, 1},
@@ -18,12 +19,12 @@ int main() {
                                {1, 1, 0, 1, 0, 0},
                                {0, 0, 0, 1, 0, 0}};
 
-    Node<TNode> nodeA("A");
-    Node<TNode> nodeB("B");
-    Node<TNode> nodeC("C");
-    Node<TNode> nodeD("D");
-    Node<TNode> nodeE("E");
-    Node<TNode> nodeF("F");
+    Node<TNode> nodeA(0);
+    Node<TNode> nodeB(1);
+    Node<TNode> nodeC(2);
+    Node<TNode> nodeD(3);
+    Node<TNode> nodeE(4);
+    Node<TNode> nodeF(5);
 
     vector<Node<TNode>> nodes1 = {nodeA, nodeB, nodeC, nodeD};
     vector<Node<TNode>> nodes2 = {nodeA, nodeB, nodeC, nodeD, nodeE, nodeF};
@@ -43,14 +44,12 @@ int main() {
 //    Edge<TNode, TWeight> edgeEB(nodeE, nodeB, 0.2500);
 
     Graph<TNode, TWeight> graph1(nodes1, matrix1);
+    Graph<TNode, TWeight> graph2(nodes2, matrix2);
 
-    cout << graph1.AdjacencyMatrix() << endl;
+    swap(graph1, graph2);
 
-    matrix2 = Matrix<TWeight>();
-
-//    for (int i = 0; i < graph1.Nodes(); ++i) {
-//        cout << "( " << graph1.degree_out(i) << " : " << graph1.degree_in(i) << " )" << endl;
-//    }
-
+    for (auto i: graph1.Nodes()) {
+        cout << "( " << graph1.degree_out(i) << " : " << graph1.degree_in(i) << " )" << endl;
+    }
     return 0;
 }
