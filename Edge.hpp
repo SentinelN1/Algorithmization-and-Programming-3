@@ -5,30 +5,38 @@
 template<typename TNode, typename TWeight>
 class Edge {
 private:
-    Node<TNode> firstNode;
-    Node<TNode> secondNode;
+    const Node<TNode> *fromNode;
+    const Node<TNode> *toNode;
     TWeight edgeWeight;
 
 public:
-    Edge() = default;
+    Edge() {
+        fromNode = nullptr;
+        toNode = nullptr;
+        edgeWeight = 0;
+    }
 
-    Edge(Node<TNode> first, Node<TNode> second, const TWeight &weight) {
-        firstNode = first;
-        secondNode = second;
+    Edge(const Node<TNode> &from, const Node<TNode> &to, const TWeight &weight) {
+        fromNode = &from;
+        toNode = &to;
         edgeWeight = weight;
     }
 
     ~Edge() = default;
 
-    TNode FirstNodeData() const {
-        return firstNode->NodeData();
-    }
-
-    TNode SecondNodeData() const {
-        return secondNode->NodeData();
-    }
-
-    TWeight Weight() const {
+    TWeight GetWeight() const {
         return edgeWeight;
+    }
+
+    void SetWeight(const TWeight &weight) {
+        edgeWeight = weight;
+    }
+
+    const Node<TNode> *FromNode() const {
+        return fromNode;
+    }
+
+    const Node<TNode> *ToNode() const {
+        return toNode;
     }
 };

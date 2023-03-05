@@ -118,6 +118,8 @@ public:
         return *this;
     }
 
+    // Move Constructor
+
     // Move Assignment Operator
     Matrix &operator=(Matrix<T> &&other) {
         if (this != &other) {

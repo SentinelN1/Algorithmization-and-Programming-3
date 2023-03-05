@@ -1,5 +1,7 @@
 #pragma once
 
+using std::pair;
+
 template<typename TNode>
 class Node {
 private:
@@ -14,7 +16,19 @@ public:
 
     ~Node() = default;
 
-    TNode NodeData() const {
+    TNode GetData() const {
         return nodeData;
+    }
+
+    void SetData(const TNode &data) {
+        nodeData = data;
+    }
+};
+
+template<typename TNode>
+struct NodeCompare {
+    bool
+    operator()(const Node<TNode> &lhs, const Node<TNode> &rhs) const {
+        return &lhs < &rhs;
     }
 };
