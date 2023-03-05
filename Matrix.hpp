@@ -38,12 +38,12 @@ public:
     }
 
     // Constructor
-    Matrix(const int &r, const int &c, const T &t = 0) {
+    Matrix(const int &r, const int &c, const T &t) {
         rows = r;
         columns = c;
         data = vector<T>(r * c);
 
-        // Fills matrix with zeros
+        // Fills the matrix
         for (auto i: data) {
             i = t;
         }
@@ -259,7 +259,7 @@ public:
     }
 
     // Element of a matrix
-    T operator()(const int &column, const int &row) const {
+    T &operator()(const size_t &column, const size_t &row) {
         if (row >= rows || column >= columns) {
             throw std::invalid_argument("Index out of range.");
         }
@@ -280,16 +280,18 @@ public:
         return matrix;
     }
 
-    Matrix<T> Minor(const int &row, const int &column) const {
+    Matrix<T> Minor(const size_t &row, const size_t &column) const {
         Matrix<T> matrix(rows - 1, columns - 1);
-        for (int i = 0; i < rows - 1; i++) {
-            for (int j = 0; j < columns - 1; j++) {
-                int x = i;
-                int y = j;
-                if (i >= row)
+        for (size_t i = 0; i < rows - 1; ++i) {
+            for (size_t j = 0; j < columns - 1; ++j) {
+                size_t x = i;
+                size_t y = j;
+                if (i >= row) {
                     x = i + 1;
-                if (j >= column)
+                }
+                if (j >= column) {
                     y = j + 1;
+                }
                 matrix.data[i * (columns - 1) + j] = data[x * columns + y];
             }
         }

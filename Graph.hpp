@@ -2,12 +2,13 @@
 
 #include "Matrix.hpp"
 #include "Edge.hpp"
+#include <fstream>
 #include <vector>
 #include <list>
 #include <map>
 #include <set>
 
-using std::vector, std::list, std::pair, std::map, std::set;
+using std::string, std::vector, std::list, std::pair, std::map, std::set;
 
 template<typename TNode, typename TWeight>
 class Graph {
@@ -42,7 +43,6 @@ public:
         return adjacencyMatrix;
     }
 
-
     // 3. Основной интрефейс -- начало
     bool empty() const {
         return graphNodes.empty();
@@ -64,14 +64,55 @@ public:
     // Default Constructor
     Graph() = default;
 
-    // Constructor
+    // Constructor from vector
     Graph(const vector<Node<TNode>> &nodes, const Matrix<TWeight> &matrix) {
-        if (matrix.square()) {
-            for (size_t i = 0; i < nodes.size(); ++i) {
-                graphNodes[nodes[i]] = i;
-            }
-            adjacencyMatrix = matrix;
+        if (!matrix.square()) {
+            throw std::invalid_argument("Adjacency matrix has to have equal number of rows and columns.");
         }
+        if (nodes.size() != matrix.Rows()) {
+            throw std::invalid_argument(
+                    "Dimensions of the adjacency matrix should be equal to the number of vertices.");
+        }
+        size_t index = 0;
+        for (auto i: nodes) {
+            graphNodes[i] = index;
+            ++index;
+        }
+        adjacencyMatrix = matrix;
+    }
+
+    // Constructor from list
+    Graph(const list<Node<TNode>> &nodes, const Matrix<TWeight> &matrix) {
+        if (!matrix.square()) {
+            throw std::invalid_argument("Adjacency matrix has to have equal number of rows and columns.");
+        }
+        if (nodes.size() != matrix.Rows()) {
+            throw std::invalid_argument(
+                    "Dimensions of the adjacency matrix should be equal to the number of vertices.");
+        }
+        size_t index = 0;
+        for (auto i: nodes) {
+            graphNodes[i] = index;
+            ++index;
+        }
+        adjacencyMatrix = matrix;
+    }
+
+    // Constructor from set
+    Graph(const set<Node<TNode>, NodeCompare<TNode>> &nodes, const Matrix<TWeight> &matrix) {
+        if (!matrix.square()) {
+            throw std::invalid_argument("Adjacency matrix has to have equal number of rows and columns.");
+        }
+        if (nodes.size() != matrix.Rows()) {
+            throw std::invalid_argument(
+                    "Dimensions of the adjacency matrix should be equal to the number of vertices.");
+        }
+        size_t index = 0;
+        for (auto i: nodes) {
+            graphNodes[i] = index;
+            ++index;
+        }
+        adjacencyMatrix = matrix;
     }
 
     // Destructor
@@ -112,7 +153,7 @@ public:
         }
         return *this;
     }
-    // 2. Конструкторы и операторы присваивания класса Graph -- начало
+    // 2. Конструкторы и операторы присваивания класса Graph -- конец
 
     // 4. Итерирование по графу -- начало
     auto begin() {
@@ -159,23 +200,110 @@ public:
     // 5. Работа с графом через ключ -- конец
 
     // 6. Вставка узлов и рёбер в граф -- начало
-//    pair<auto, bool> insert_node(const Node<TNode> &node) {
-//
-//    }
+    auto insert_node(const Node<TNode> &node) {
+//        if (&node == nullptr) {
+//            throw std::invalid_argument("Node does not exist.");
+//        }
+        if (graphNodes.find(node) != graphNodes.end()) {
+            return std::make_pair(graphNodes.end(), false);
+        }
+        Matrix<TWeight> matrix(size() + 1, size() + 1, 0);
+        for (size_t i = 0; i < size(); ++i) {
+            for (size_t j = 0; j < size(); ++j) {
+                matrix(i, j) = adjacencyMatrix(i, j);
+            }
+        }
+        graphNodes[node] = size();
+        adjacencyMatrix = matrix;
+        return std::make_pair(graphNodes.find(node), true);
+    }
+
+    auto insert_or_assign_node(const Node<TNode> &node) {
+        if (&node == nullptr) {
+            throw std::invalid_argument("Node does not exist.");
+        }
+        auto it = graphNodes.find(node);
+        if (it != graphNodes.end()) {
+            return std::make_pair(it, true);
+        }
+        Matrix<TWeight> matrix(size() + 1, size() + 1, 0);
+        for (size_t i = 0; i < size(); ++i) {
+            for (size_t j = 0; j < size(); ++j) {
+                matrix(i, j) = adjacencyMatrix(i, j);
+            }
+        }
+        graphNodes[node] = size();
+        adjacencyMatrix = matrix;
+        return std::make_pair(graphNodes.find(node), true);
+    }
+
+    auto insert_edge(const pair<const Node<TNode> &, const Node<TNode> &> &nodes, const TWeight &weight) {
+        auto fromNode = nodes.first;
+        auto toNode = nodes.second;
+        if (graphNodes.find(fromNode) == graphNodes.end() || graphNodes.find(toNode) == graphNodes.end()) {
+            throw std::invalid_argument("Node does not exist within the graph.");
+        }
+        if (adjacencyMatrix(graphNodes[toNode], graphNodes[fromNode]) > 0) {
+            return std::make_pair(graphNodes.end(), false);
+        }
+        adjacencyMatrix(graphNodes[toNode], graphNodes[fromNode]) = weight;
+        return std::make_pair(graphNodes.find(fromNode), true);
+    }
+
+    auto insert_or_assign_edge(const pair<const Node<TNode> &, const Node<TNode> &> &nodes, const TWeight &weight) {
+        auto fromNode = nodes.first;
+        auto toNode = nodes.second;
+        if (graphNodes.find(fromNode) == graphNodes.end() || graphNodes.find(toNode) == graphNodes.end()) {
+            throw std::invalid_argument("Node does not exist within the graph.");
+        }
+        adjacencyMatrix(graphNodes[toNode], graphNodes[fromNode]) = weight;
+        return std::make_pair(graphNodes.find(fromNode), true);
+    }
     // 6. Вставка узлов и рёбер в граф -- конец
 
+    // 7. Удаление узлов и рёбер из Graph -- начало
     void clear_edges() {
-        adjacencyMatrix = Matrix<TWeight>(Nodes(), Nodes(), 0);
+        adjacencyMatrix = Matrix<TWeight>(size(), size(), 0);
     }
 
-    bool erase_edges_go_from(const int &nodeIndex) {
-        for (int i = 0; i < Nodes(); ++i) {
-
+    bool erase_edges_go_from(const Node<TNode> &node) {
+        if (graphNodes.find(node) == graphNodes.end()) {
+            return false;
         }
+        for (int i = 0; i < size(); ++i) {
+            adjacencyMatrix(i, graphNodes[node]) = 0;
+        }
+        return true;
     }
 
-    //
+    bool erase_edges_go_to(const Node<TNode> &node) {
+        if (graphNodes.find(node) == graphNodes.end()) {
+            return false;
+        }
+        for (int i = 0; i < size(); ++i) {
+            adjacencyMatrix(graphNodes[node], i) = 0;
+        }
+        return true;
+    }
 
+    bool erase_node(const Node<TNode> &node) {
+        if (graphNodes.find(node) == graphNodes.end()) {
+            return false;
+        }
+        adjacencyMatrix = adjacencyMatrix.Minor(graphNodes[node], graphNodes[node]);
+        for (auto it = graphNodes.find(node); it != graphNodes.end(); it++) {
+            it->second = it->second - 1;
+        }
+        graphNodes.erase(node);
+        return true;
+    }
+    // 7. Удаление узлов и рёбер из Graph -- конец
+
+    // 8. Считывание и запись в файл -- начало
+    bool load_from_file(const string &path) {
+
+    }
+    // 8. Считывание и запись в файл -- конец
 };
 
 template<typename TNode, typename TWeight>
