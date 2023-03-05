@@ -301,7 +301,41 @@ public:
 
     // 8. Считывание и запись в файл -- начало
     bool load_from_file(const string &path) {
+        std::ifstream ifstream;
+        ifstream.open(path);
 
+        if (!ifstream) {
+            return false;
+        }
+
+        size_t n;
+        ifstream >> n;
+        for (size_t i = 0; i < n; ++i) {
+            TNode tmp;
+            ifstream >> tmp;
+            insert_node(tmp);
+        }
+        ifstream >> adjacencyMatrix;
+        ifstream.close();
+        return true;
+    }
+
+    bool save_to_file(const string &path) {
+        std::ofstream ofstream;
+        ofstream.open(path);
+
+        if (!ofstream) {
+            return false;
+        }
+
+        ofstream << "Nodes contents:\n";
+        for (auto i: graphNodes) {
+            ofstream << i.first.GetData() << "\n";
+        }
+        ofstream << "\nAdjacency matrix:\n";
+        ofstream << adjacencyMatrix;
+        ofstream.close();
+        return true;
     }
     // 8. Считывание и запись в файл -- конец
 };
