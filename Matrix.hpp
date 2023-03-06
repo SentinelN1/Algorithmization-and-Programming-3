@@ -38,13 +38,13 @@ public:
     }
 
     // Constructor
-    Matrix(const int &r, const int &c, const T &t) {
+    Matrix(const int &r, const int &c, const T &t = 0) {
         rows = r;
         columns = c;
         data = vector<T>(r * c);
 
         // Fills the matrix
-        for (auto i: data) {
+        for (auto &i: data) {
             i = t;
         }
     }
